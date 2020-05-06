@@ -1,0 +1,118 @@
+
+
+FID = fopen('FEMALE.txt');
+FEMALE_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('MALE.txt');
+MALE_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('test2.txt');
+data=fscanf(FID,'%f %f %c',[3,inf]);
+fclose(FID);
+%自测试
+
+% data=zeros(3,100);
+% data=[v1';v2';v3'];
+
+rat=zeros(300,2);
+FEMALE_CORRECT_RAT=zeros(100,1);
+MALE_CORRECT_RAT=zeros(100,1);
+result=zeros(300,1);
+H=1; 
+for h=0.1:0.1:20
+
+for k=1:length(data)% 测试样本
+        hn=h/sqrt(50);
+  for j=1:50%parzen窗求概率函数
+     
+     rat(k,1)=rat(k,1)+exp(-(data(1:2,k)'-FEMALE_data(1:2,j)')*(data(1:2,k)-FEMALE_data(1:2,j))/(2*hn^2))/(sqrt(2*3.1415)*hn^2);
+     rat(k,2)=rat(k,2)+exp(-(data(1:2,k)'-MALE_data(1:2,j)')*(data(1:2,k)-MALE_data(1:2,j))/(2*hn^2))/(sqrt(2*3.1415)*hn^2);
+   end
+    rat(k,1)=rat(k,1)/length(FEMALE_data);
+    rat(k,2)=rat(k,2)/length(MALE_data);
+  %fprintf('FEMALE_rat: %d,  MALE_rat: %d  %d\n',rat(k,1),rat(k,2),k);
+end
+%%画出二维曲线
+% x=141:200;
+% y=1:100;
+% [X,Y]=meshgrid(x,y);
+% P_MALE=0;
+% P_FEMALE=0;
+% m=1;
+% n=1;
+% P=zeros(100,60);
+%  hn=h/sqrt(50);
+% for i=141:200
+%     for j=1:100
+%        
+%         for k=1:50
+%             
+%              P_FEMALE=P_FEMALE+exp(-((i-FEMALE_data(1,k))^2+(j-FEMALE_data(2,k))^2)/(2*hn*hn))/(sqrt(2*3.1415)*hn^2);
+%         end
+%         P_FEMALE=P_FEMALE/50;
+% P(m,n)=P_FEMALE;
+% m=m+1;
+%     end
+%     n=n+1;
+%     m=1;
+% end
+% 
+% mesh(x,y,P);
+% xlabel('身高');
+% ylabel('体重');
+% zlabel('窗宽度');
+% %找出二维P曲线的峰值
+% [max1,locat1]=max(P);
+% [max2,locat2]=max(max1);
+% [locat1(locat2) locat2]
+
+for i=1:100%%%%%%%%%%%%%%%%
+    if rat(i,1)>rat(i,2)
+        result(i,1)=70;
+    else  
+        result(i,1)=77;
+    end
+end
+M_F=0;
+F_M=0;
+FEMALE_corect=0;
+MALE_corect=0;
+for i=1:100%%%%%%%%%%%%%%%%%
+    if(result(i,1)~=data(3,i))
+        if(result(i,1)==77)
+             M_F=M_F+1;
+        else
+            F_M=F_M+1;
+        end
+      end
+end
+ FEMALE_corect=(50-M_F)/50; 
+ FEMALE_CORRECT_RAT(H,1)=FEMALE_corect;
+ MALE_corect=(250-F_M)/250;  %%%%%%%%%%%%%%%%%%%%%
+  MALE_CORRECT_RAT(H,1)=MALE_corect;
+  H=H+1;
+fprintf('FEMALE_correct: %f , MALE_correct: %f\n',FEMALE_corect,MALE_corect)
+% B=0;
+% B=(F_M+M_F)/300
+end   
+%%画出正确率曲线
+x=linspace(0.1,20,200);
+plot(x,FEMALE_CORRECT_RAT,'r')
+hold on
+plot(x,MALE_CORRECT_RAT,'b')
+grid on
+xlabel('窗宽度');
+ylabel('正确率');
+legend('FEMALE','MALE')
+
+%%判断是否有概率相同的点
+% k=1;
+% for i=1:300
+%     if  rat(i,1)==rat(i,2)
+%         k=k+1;
+%     end
+% end
+% disp(k)
+%end
+
+
