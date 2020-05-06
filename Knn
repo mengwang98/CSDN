@@ -1,0 +1,84 @@
+function knn(k)
+
+[ hei2D, wei2D, test_hei2D, test_wei2D] = normalise();
+% ans(:,1)表示第一列， ans(:,2)表示第二列
+hei             = hei2D(:,1);
+wei             = wei2D(:,1);
+test_hei        = test_hei2D(:,1);
+test_wei        = test_wei2D(:,1);
+train_lable     = hei2D(:,2);
+test_lable      = test_hei2D(:,2);
+
+cnt_female_correct = 0;  
+cnt_female_total   = 0;
+cnt_male_correct   = 0;  
+cnt_male_total     = 0;
+
+%   %打出原来的训练样本点
+%   for i = 1 : length(hei)
+%         if train_lable(i) == 0
+%             plot( hei(i), wei(i), 'r*');
+%             hold on;
+%         else
+%             plot( hei(i), wei(i), 'b*');
+%             hold on;
+%         end
+%   end
+
+euler_dis = zeros(1, length(hei)); %每个训练样本到一个测试点都有一个欧式距离 
+for j = 1 : length(test_hei)
+    
+    temp_female_cnt = 0;
+    temp_male_cnt   = 0;
+    
+    for i = 1 : length(hei)     %euler_dis(i)表示的是当前第j个测试点距离第i个训练点的欧式距离
+        euler_dis(i) = ( test_hei(j) - hei(i) )^2 + ( test_wei(j) - wei(i) )^2 ;
+    end
+    
+    %对欧式距离进行排序，得到索引值，并通过索引值得到训练样本中该点为男生还是女生，并用从cnt计数
+    [~, index] = sort(euler_dis);
+%    disp(index);
+    for a = 1 : k
+        if  train_lable( index(a) ) == 0 %第 index(a) 个训练样本是女生
+            temp_female_cnt = temp_female_cnt + 1;
+        else                             %第 index(a) 个训练样本是男生
+            temp_male_cnt = temp_male_cnt + 1;
+        end
+    end
+    %根据cnt的值来判断该测试点到底属于哪一类？
+    if temp_female_cnt > temp_male_cnt
+        disp('a female point');
+        plot( test_hei(j), test_wei(j), 'ro');
+        hold on;
+        if test_lable(j) == 0
+            cnt_female_correct = cnt_female_correct +1;
+        end
+    elseif temp_female_cnt < temp_male_cnt
+        disp('a male point');
+        plot( test_hei(j), test_wei(j), 'bo');
+        hold on;
+        if test_lable(j) == 1
+            cnt_male_correct = cnt_male_correct +1;
+        end
+    else
+        disp('error');
+    end
+    
+    %打出原来的测试点
+    if test_lable(j) == 0
+        cnt_female_total = cnt_female_total + 1;
+        plot( test_hei(j), test_wei(j), 'r+');
+        hold on;
+        grid on;
+    elseif test_lable(j) == 1
+        cnt_male_total   = cnt_male_total   + 1;
+        plot( test_hei(j), test_wei(j), 'b+');
+        hold on;
+    end   
+end
+
+rat_female_correct = cnt_female_correct / cnt_female_total;
+rat_male_correct   = cnt_male_correct   / cnt_male_total;
+fprintf('cnt_female_wrong: %d \t cnt_female_total: %d \t rat_female_wrong: %f  \ncnt_male_wrong: %d \t cnt_male_total: %d \t rat_male_wrong: %f\n', (cnt_female_total-cnt_female_correct), cnt_female_total, (1-rat_female_correct), (cnt_male_total-cnt_male_correct), cnt_male_total, (1-rat_male_correct));
+          
+end
