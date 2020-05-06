@@ -1,0 +1,40 @@
+FID = fopen('FEMALE.txt');
+F_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('MALE.txt');
+M_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+A=[0;0];
+h=11;
+%%测试男生
+MALE_CORRECT=0;
+M_data1=[A,M_data,A];
+for i=2:51    %提取出来的测试样本点共50次
+    M_x=[M_data1(1:2,1:i-1),M_data1(1:2,i+1:52)];
+    
+end
+ k=1;
+%%判别
+rat=zeros(50,2);
+
+for i=2:51    %提取出来的测试样本点共50次
+    M_x=[M_data1(1:2,1:i-1),M_data1(1:2,i+1:52)];
+    hn=h/sqrt(50);
+    for j=1:50%parzen窗求概率函数
+     
+     rat(k,1)=rat(k,1)+exp(-(M_data(1:2,k)'-F_data(1:2,j)')*(M_data(1:2,k)-F_data(1:2,j))/(2*hn^2))/(sqrt(2*3.14)*hn^2);
+     
+   end
+    rat(k,1)=rat(k,1)/length(F_data);
+    hn=h/sqrt(49);
+    for j=2:50%%%49个数据
+    rat(k,2)=rat(k,2)+exp(-(M_data(1:2,k)'-M_x(1:2,j)')*(M_data(1:2,k)-M_x(1:2,j))/(2*hn^2))/(sqrt(2*3.14)*hn^2);
+    end
+    rat(k,2)=rat(k,2)/49;
+    if rat(k,2)>rat(k,1)
+        MALE_CORRECT=MALE_CORRECT+1;
+    end
+    k=k+1;
+end
+disp(k)
+disp(MALE_CORRECT)
