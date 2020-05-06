@@ -1,0 +1,64 @@
+%%留一法进行男生自测试
+%%获取训练样本
+FID = fopen('FEMALE.txt');
+F_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('MALE.txt');
+M_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('test2.txt');
+data=fscanf(FID,'%f %f %c',[3,inf]);
+fclose(FID)
+A=[0;0];
+%%测试男生
+MALE_CORRECT=0;
+%女生均值
+F_x=F_data(1:2,1:50);
+F_miu=(1/50)*[sum(F_x(1,:));sum(F_x(2,:))];
+M_miu=zeros(50,2);
+%求女生的s矩阵
+[row_FEMALE,colum_FEMALE]=size(F_x);
+s_FEMALE=zeros(2,2);
+for i=1:colum_FEMALE
+    s_FEMALE = s_FEMALE+(F_x(:,i)-F_miu)*(F_x(:,i)'-F_miu');
+end
+
+M_data1=[A,M_data,A];
+
+
+for i=2:51    %提取出来的测试样本点共50次
+    M_x=[M_data1(1:2,1:i-1),M_data1(1:2,i+1:52)];
+    M_miu(i-1,:)=(1/49)*[sum(M_x(1,2:50));sum(M_x(2,2:50))];
+end
+ k=1;
+    for i=2:51    %提取出来的测试样本点共50次
+         M_x=[M_data1(1:2,1:i-1),M_data1(1:2,i+1:52)];
+    
+    %求男生的s矩阵
+    s_MALE=zeros(2,2);
+    for j=2:50
+        s_MALE = s_MALE + (M_x(:,j)-M_miu(k,:)')*(M_x(:,j)'-M_miu(k,:));
+    end
+    sw=s_FEMALE+s_MALE;
+    %计算解向量
+    W=inv(sw)*(M_miu(k,:)'-F_miu);
+    %计算阈值
+    
+   M_miuuuu=(1/49)*[sum(M_x(1,2:50));sum(M_x(2,1:50))];
+    w1=(W'*M_miuuuu+W'*F_miu)/2;
+    w2=(49*W'*M_miuuuu+50*W'*F_miu)/99;
+    w3=W'*M_miu(k,:)'+(W'*F_miu-W'*M_miu(k,:)')*(W'*s_MALE*W)/(W'*s_MALE*W+W'*s_FEMALE*W);
+    %判断
+    if((W'*M_data(:,k)-w2)>0)
+        disp('正确')
+        MALE_CORRECT=MALE_CORRECT+1;
+    else
+        disp('错误')
+    end
+    sw=[0 0;0 0];
+    k=k+1;
+    end
+
+disp(MALE_CORRECT)
+disp(k)
+
