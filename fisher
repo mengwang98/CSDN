@@ -1,0 +1,199 @@
+%获取训练样本
+
+FID = fopen('FEMALE.txt');
+F_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('MALE.txt');
+M_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('test2.txt');
+data=fscanf(FID,'%f %f %c',[3,inf]);
+fclose(FID)
+N=length(M_data);
+%男生均值
+M_x=M_data(1:2,1:50);
+M_miu=(1/N)*[sum(M_x(1,:));sum(M_x(2,:))];%??????
+%女生均值
+F_x=F_data(1:2,1:50);
+F_miu=(1/N)*[sum(F_x(1,:));sum(F_x(2,:))];
+%求男生的s矩阵
+[row_MALE,colum_MALE]=size(M_x);
+s_MALE=zeros(2,2);
+for i=1:colum_MALE
+    s_MALE = s_MALE + (M_x(:,i)-M_miu)*(M_x(:,i)'-M_miu');
+end
+%求女生的s矩阵
+[row_FEMALE,colum_FEMALE]=size(F_x);
+s_FEMALE=zeros(2,2);
+for i=1:colum_FEMALE
+    s_FEMALE = s_FEMALE+(F_x(:,i)-F_miu)*(F_x(:,i)'-F_miu');
+end
+sw=s_FEMALE+s_MALE;
+
+%计算解向量
+W=inv(sw)*(M_miu-F_miu);
+%%单位化
+S=sqrt(W(1,1)^2+W(2,1)^2);
+W=[W(1,1)/S;W(2,1)/S];
+%阈值
+w1=(W'*M_miu+W'*F_miu)/2;
+w2=(length(M_x)*W'*M_miu+length(F_x)*W'*F_miu)/(length(F_x)+length(M_x));
+w3=W'*M_miu+(W'*F_miu-W'*M_miu)*(W'*s_MALE*W)/(W'*s_MALE*W+W'*s_FEMALE*W);
+%%画出样本点
+for i=1:50
+ plot(M_x(1,i),M_x(2,i),'+b');
+ hold on;
+ plot(F_x(1,i),F_x(2,i),'+r');
+end
+xlabel('身高');
+ylabel('体重');
+%画决策曲线
+x=linspace(131,200,70);
+y=x*W(2,1)/W(1,1);
+plot(x,y,'g')
+grid on
+disp('男生的类内离散度：')
+disp(s_MALE)
+disp('女生的类内离散度：')
+disp(s_FEMALE)
+W0=-0.5*(M_miu+F_miu)'*inv(sw)*(M_miu-F_miu);
+x=linspace(131,200,70);
+y=(-(x*W(1,1)+W0))/W(2,1);
+plot(x,y,'g')
+grid on
+xlabel('身高');
+ylabel('体重');
+% x=linspace(131,200,70);
+% y=(-(x*W(1,1)+w1))/W(2,1);
+% plot(x,y,'g')
+% grid on
+% xlabel('身高');
+% ylabel('体重');
+%%自测试
+F_M=0;
+M_F=0;
+MALE_correct=0;
+FEMALE_correct=0;
+result_train=zeros(100,1);
+for i=1:50
+    if((W'*M_x(1:2,i)-w2)>0)
+        result0(i,1)=77;
+    else
+        result0(i,1)=70;
+    end
+    %判断
+    if(77~=result0(i,1))
+        F_M=F_M+1;
+    end
+    %%女生
+    if((W'*F_x(1:2,i)-w2)>0)
+        result0(i,1)=77;
+    else
+        result0(i,1)=70;
+    end
+    %判断
+    if(70~=result0(i,1))
+        M_F=M_F+1;
+    end
+    end
+
+MALE_correct=(50-F_M)/50;%%%%%%%%%%%%%%%%%%
+FEMALE_correct=(50-M_F)/50;
+A=0;
+A=(300-F_M-M_F)/300
+disp(A)
+
+disp('自测试')
+fprintf('MALE_corrrect: %f  FEMALE_correct:  %f \n',MALE_correct,FEMALE_correct);
+
+%%阈值w1测试
+F_M=0;
+M_F=0;
+MALE_correct=0;
+FEMALE_correct=0;
+result1=zeros(300,1);
+
+for i=1:300
+    if((W'*data(1:2,i)-w1)>0)
+        result1(i,1)=77;
+    else
+        result1(i,1)=70;
+    end
+    %判断
+    if(data(3,i)~=result1(i,1))
+    if(result1(i,1)==77)
+        M_F=M_F+1;
+    else
+        F_M=F_M+1;
+    end
+    end
+end
+MALE_correct=(250-F_M)/250;%%%%%%%%%%%%%%%%%%%%%%%%%%
+FEMALE_correct=(50-M_F)/50;
+disp('阈值w1测试结果为')
+A=0;
+A=(F_M+M_F)/300
+disp(A)
+
+fprintf('MALE_corrrect: %f  FEMALE_correct:  %f \n',MALE_correct,FEMALE_correct);
+%%阈值w2测试
+F_M=0;
+M_F=0;
+MALE_correct=0;
+FEMALE_correct=0;
+result2=zeros(300,1);
+
+for i=1:300
+    if((W'*data(1:2,i)-w2)>0)
+        result2(i,1)=77;
+    else
+        result2(i,1)=70;
+    end
+    %判断
+    if(data(3,i)~=result2(i,1))
+    if(result2(i,1)==77)
+        M_F=M_F+1;
+    else
+        F_M=F_M+1;
+    end
+    end
+end
+MALE_correct=(250-F_M)/250;%%%%%%%%%%%%%%%%%%%%%%
+FEMALE_correct=(50-M_F)/50;
+disp('阈值w2测试结果为')
+A=0;
+A=(F_M+M_F)/300
+disp(A)
+
+fprintf('MALE_corrrect: %f  FEMALE_correct:  %f \n',MALE_correct,FEMALE_correct);
+%%阈值w3测试
+F_M=0;
+M_F=0;
+MALE_correct=0;
+FEMALE_correct=0;
+result3=zeros(300,1);
+
+for i=1:300
+    if((W'*data(1:2,i)-w3)>0)
+        result3(i,1)=77;
+    else
+        result3(i,1)=70;
+    end
+    %判断
+    if(data(3,i)~=result3(i,1))
+    if(result3(i,1)==77)
+        M_F=M_F+1;
+    else
+        F_M=F_M+1;
+    end
+    end
+end
+MALE_correct=(250-F_M)/250;%%%%%%%%%%%%%%%
+FEMALE_correct=(50-M_F)/50;
+A=0;
+A=(F_M+M_F)/300
+disp(A)
+
+disp('阈值w3测试结果为')
+fprintf('MALE_corrrect: %f  FEMALE_correct:  %f \n',MALE_correct,FEMALE_correct);
+
