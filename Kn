@@ -1,0 +1,49 @@
+%%kn近邻方法
+%获取样本
+function kn(H)
+FID = fopen('FEMALE.txt');
+F_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('MALE.txt');
+M_data=fscanf(FID,'%f %f',[2,inf]);
+fclose(FID);
+FID = fopen('test2.txt');
+data=fscanf(FID,'%f %f %c',[3,inf]);
+fclose(FID)
+ rat=zeros(300,1);
+ male_correct=0;
+ female_correct=0;
+
+F_M=0;
+M_F=0;
+
+for i=1:300
+    K_female=0;
+    K_male=0;
+    for  j=1:50
+        if (sqrt((data(1,i)-F_data(1,j))^2+(data(2,i)-F_data(2,j))^2)<H)
+            K_female=K_female+1;
+        end
+        if (sqrt((data(1,i)-M_data(1,j))^2+(data(2,i)-M_data(2,j))^2)<H)
+            K_male=K_male+1;
+        end
+    end
+        if (K_male>K_female)
+            rat(i,1)=77;
+        else
+            rat(i,1)=70;
+        end
+        if (rat(i,1)~=data(3,i))
+            if rat(i,1)==70;
+                F_M=F_M+1;
+            else
+                M_F=M_F+1;
+            end
+        end
+end
+ male_correct=(250-F_M)/250;
+ female_correct=(50-M_F)/50;
+ fprintf('female_correct: %f  male_correct: %f',female_correct,male_correct);
+end
+            
+        
